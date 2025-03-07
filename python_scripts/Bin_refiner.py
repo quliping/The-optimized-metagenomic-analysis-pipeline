@@ -123,7 +123,7 @@ parser.add_argument('--percentage', help="Two refined genomes with identity high
 parser.add_argument('-c', help="Min comleteness percentage in the final quality check.", type=int, required=False, default=50)
 parser.add_argument('-x', help="Max contamination percentage in the final quality check.", type=int, required=False, default=10)
 parser.add_argument('--prefix', help="Prefix for refined bins. Default is 'bin.', final bin wiil be 'bin.1.fa'.", type=str, required=False, default='bin.')
-parser.add_argument('-o', help="Output dir. It must be different from the path containing query binning results.", type=str, required=True, default='./')
+parser.add_argument('-o', help="Output dir. It must be different from the path containing query binning results.", type=str, required=False, default='./')
 parser.add_argument('--remove_tmp', help="Remove tmp files after finish this pipeline.", required=False, default=False, action='store_true')
 args = parser.parse_args()
 env = args.env
