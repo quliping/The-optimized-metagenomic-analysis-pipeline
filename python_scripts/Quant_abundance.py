@@ -12,7 +12,6 @@ from Bio import SeqIO
 from sklearn.ensemble import IsolationForest
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-####### SeqIO will ignore the blank in the fasta id !!!!!!! #############
 # obtain current time
 def time_current():
     current_time = f"[{str(datetime.now().replace(microsecond=0))}]"
