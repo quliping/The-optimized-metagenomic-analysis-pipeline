@@ -54,15 +54,6 @@ def only_title(input_file):
         return True
     else:
         return False
-def summary_fastqc(fastqc_result):
-    with open(fastqc_result, 'r') as input:
-        lines = input.read().splitlines()
-    for line in lines:
-        temp = re.split('\t', line)
-        id = temp[0]
-        content = temp[1]
-        if id == 'Total Sequences':
-            return content
 # a read may have multiple regions that mapped to the same or different reference contigs.
 # samtools or pysam only report the alignment number rather the reads number
 # if a read mapped more than one time to a reference contig, the mapped count will only be recorded as 1
@@ -233,7 +224,7 @@ parser.add_argument('--module', help='''Choose 'gene' (each gene per file contai
                     'between-sample' mapping (only sequences from their original sample will used as the input reference file for minimap2 mapping
                     for the sample); or choose 'virus' module (each sequence is an individual in all input files) which is very similar
                     with the 'assembly' module but it will perform 'between-sample' mapping (all input sequences will concentrate together as the 
-                    reference of minimap2 mapping using raw reads). ''', type=str, choices=['gene', 'MAG', 'assembly', 'virus'], required=False, default='MAG')
+                    reference of minimap2 mapping). ''', type=str, choices=['gene', 'MAG', 'assembly', 'virus'], required=False, default='MAG')
 parser.add_argument('--method', help="Choose outlier remove method in the gene module.", type=str, choices=['IQR', 'Z-score', 'IF'], required=False, default='IQR')
 parser.add_argument('--threshold', help="Threshold for outlier removing in the gene module.", type=float, required=False, default=3)
 parser.add_argument('-t', '--threads', help="Threads.", type=int, required=False, default=8)

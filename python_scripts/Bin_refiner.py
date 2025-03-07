@@ -108,7 +108,8 @@ def compare_two_genomes(list1, list2, com_threshold=50, con_threshold=10):
         else: return 'right'
 
 ##obtain options
-parser = argparse.ArgumentParser(description='''This script obtain a non-redundant MAG set from mutiple binning results. Biopython, pandas, checkm1/checkm2 are needed.''', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser = argparse.ArgumentParser(description='''This script obtain a non-redundant MAG set from mutiple (any number) binning results. 
+                                Biopython, pandas, and the conda environments of checkm1 or checkm2 are needed.''', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('-i', help="Input bin sets. At least two floders (bin sets) should be specified and floder name cannot have duplicates.", type=str, required=True, default=False, nargs='+')
 parser.add_argument('-n', help="MAGs supported by at least 2 to this number of tools will be considered. Default is 0 which means pipeline will use the number of input floders.", type=int, required=False, default=0)
 parser.add_argument('-t', '--threads', help="Threads for checkm/checkm2.", type=int, required=False, default=8)
@@ -117,6 +118,7 @@ parser.add_argument('--p2', help="The contamination factor.", type=float, requir
 parser.add_argument('--p3', help="The N50 factor.", type=float, required=False, default=1e-10)
 parser.add_argument('--min_size', help="The minimum value of refined genome (bp).", type=int, required=False, default=50000)
 parser.add_argument('--checkm1', help="Use checkm1 rather than checkm2. Default will use checkm2.", required=False, default=False, action='store_true')
+parser.add_argument('--env', help="The conda environment name of checkm1 or checkm2.", type=str, required=False, default='checkm2')
 parser.add_argument('--percentage', help="Two refined genomes with identity higher than this percentage (%%) will be consideried as duplications.", type=float, required=False, default=95)
 parser.add_argument('-c', help="Min comleteness percentage in the final quality check.", type=int, required=False, default=50)
 parser.add_argument('-x', help="Max contamination percentage in the final quality check.", type=int, required=False, default=10)
@@ -124,6 +126,7 @@ parser.add_argument('--prefix', help="Prefix for refined bins. Default is 'bin.'
 parser.add_argument('-o', help="Output dir. It must be different from the path containing query binning results.", type=str, required=True, default='./')
 parser.add_argument('--remove_tmp', help="Remove tmp files after finish this pipeline.", required=False, default=False, action='store_true')
 args = parser.parse_args()
+env = args.env
 remove_tmp = args.remove_tmp
 prefix = args.prefix
 number = args.n
@@ -287,10 +290,10 @@ for each_refinement in final_refined_combinations:
         if not os.path.exists(checkm_tmp): os.mkdir(checkm_tmp)
         if os.path.exists(checkm_out): os.system(f'rm -r {checkm_out}')
         if args.checkm1 == False:
-            exit_value =  os.system(f'checkm2 predict --quiet --input {checkm_in} --output-directory {checkm_out} -x fa \
+            exit_value =  os.system(f'conda run -n {env} checkm2 predict --quiet --input {checkm_in} --output-directory {checkm_out} -x fa \
                                     --threads {threads} --remove_intermediates --tmpdir {checkm_tmp}')
         elif args.checkm1 == True:
-            exit_value =  os.system(f'checkm lineage_wf --quiet -x fa --pplacer_threads {threads} --threads {threads} --tmpdir {checkm_tmp} {checkm_in} {checkm_out} && \
+            exit_value =  os.system(f'conda run -n {env} checkm lineage_wf --quiet -x fa --pplacer_threads {threads} --threads {threads} --tmpdir {checkm_tmp} {checkm_in} {checkm_out} && \
                                     checkm qa -o 2 -f {checkm_file} --tab_table -t {threads} {checkm_out}/lineage.ms {checkm_out}')
         if exit_value != 0:
             logger.info(f'{time_current()} Something wrong when running checkm2 for combination {each_refinement}.'); exit(1)
@@ -443,10 +446,10 @@ else:
     if not os.path.exists(checkm_tmp_final): os.mkdir(checkm_tmp_final)
     if os.path.exists(checkm_out_final): os.system(f'rm -r {checkm_out_final}')
     if args.checkm1 == False:
-        exit_value =  os.system(f'checkm2 predict --quiet --input {checkm_in_final} --output-directory {checkm_out_final} -x fa \
+        exit_value =  os.system(f'conda run -n {env} checkm2 predict --quiet --input {checkm_in_final} --output-directory {checkm_out_final} -x fa \
                                 --threads {threads} --remove_intermediates --tmpdir {checkm_tmp_final}')
     elif args.checkm1 == True:
-        exit_value =  os.system(f'checkm lineage_wf --quiet -x fa --pplacer_threads {threads} --threads {threads} --tmpdir {checkm_tmp_final} {checkm_in_final} {checkm_out_final} && \
+        exit_value =  os.system(f'conda run -n {env} checkm lineage_wf --quiet -x fa --pplacer_threads {threads} --threads {threads} --tmpdir {checkm_tmp_final} {checkm_in_final} {checkm_out_final} && \
                                 checkm qa -o 2 -f {checkm_file_final} --tab_table -t {threads} {checkm_out_final}/lineage.ms {checkm_out_final}')
     if exit_value != 0:
         logger.info(f'{time_current()} Something wrong when running checkm2 for clean bins.'); exit(1)
