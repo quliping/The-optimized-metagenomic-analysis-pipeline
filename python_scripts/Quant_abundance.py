@@ -230,6 +230,7 @@ parser.add_argument('-t', '--threads', help="Threads.", type=int, required=False
 parser.add_argument('--skip_input_check', help='''Do not check input MAGs/gene_set/assembly/virus are fasta, and do not check seq id. Please make sure 
                     that input are fasta and sequence ids are renamed by the file name, like 'SY15_1_2', amoung which SY15 is the file name, 
                     '_1' is the contig id, and '_2' is the protein id.''', required=False, default=False, action='store_true')
+parser.add_argument('-x', help='''File suffix. It is useful if you use option "--skip_input_check" in the assembly module.''', required=False, default='fa', type=str)
 parser.add_argument('--retain_fastqc', help="Retain temp fastqc files rather than delete them.", required=False, default=False, action='store_true')
 parser.add_argument('--retain_bam', help="Retain temp bam files rather than delete them.", required=False, default=False, action='store_true')
 parser.add_argument('--retain_counts', help="Retain temp paired-end mapped counts results rather than delete them.", required=False, default=False, action='store_true')
@@ -244,6 +245,9 @@ parser.add_argument('-v', '--version', help="Show version and exist.", action='v
 args = parser.parse_args()
 if args.update_sample_inf == True:
     args.update_contig_abundance == True
+suffix = str(args.x)
+if not suffix.startswith('.'):
+    suffix = ''.join(['.', suffix])
 module = args.module
 analyzed_files = args.analyzed_files
 genomes_dir = args.genome
@@ -325,6 +329,8 @@ if skip_input_check == False:
             bin_path = os.path.join(genomes_dir, file)
             bin_name = os.path.splitext(file)[0]
             file_suffix = os.path.splitext(file)[1]
+            if suffix != False and file_suffix != suffix:
+                logger.info(f'{time_current()}   The actual file suffix is different from the one you specified, exit.'); exit(1)
             file_type = False
             if file in analyzed_list:
                 file_type = 'f'
@@ -341,7 +347,7 @@ if skip_input_check == False:
                     if end_with_n == True:
                         os.system(f"cp {bin_path} {dir_of_analyzed_genomes}")
                     elif end_with_n == False:
-                        outbin_path = open(os.path.join(dir_of_analyzed_genomes, file), 'w')
+                        outbin_path = open(os.path.join(dir_of_analyzed_genomes, f'{bin_name}.fa'), 'w')
                         with open(bin_path, 'r') as temp_in:
                             content = temp_in.read()
                             outbin_path.writelines(f"{content}\n")
@@ -608,7 +614,7 @@ for sample in sample_list:
         elif module == 'assembly':
             # in the assembly module, only perform the within sample mapping
             logger.info(f'{time_current()}     Mapping raw reads to the assembly or assembly genes file of sample {sample} using minimap2.')
-            assembly_file = os.path.join(dir_of_analyzed_genomes, f'{sample}{file_suffix}')
+            assembly_file = os.path.join(dir_of_analyzed_genomes, f'{sample}{suffix}')
             # fadxi for each assembly in the assembly module
             logger.info(f'{time_current()}     Perform faidx for the assembly (or DNA sequences of assembly gene repdiction file) of sample {sample}.')
             exit_value = os.system(f'samtools faidx {assembly_file}')
